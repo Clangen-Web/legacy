@@ -255,23 +255,23 @@ class Name(object):
         "Hot Sauce", "Habanero", "Taco Bell", "Cheetoman"
     ]
 
-    if not platform.window.localStorage.getItem('prefixlist.txt') == None:
-        name_list = platform.window.localStorage.getItem('prefixlist.txt')
-        if_names = len(name_list)
-        if if_names > 0:
-            new_names = name_list.split('\n')
-            for new_name in new_names:
-                if new_name != '':
-                    normal_prefixes.append(new_name)
+    # if not platform.window.localStorage.getItem('prefixlist.txt') == None:
+    #     name_list = platform.window.localStorage.getItem('prefixlist.txt')
+    #     if_names = len(name_list)
+    #     if if_names > 0:
+    #         new_names = name_list.split('\n')
+    #         for new_name in new_names:
+    #             if new_name != '':
+    #                 normal_prefixes.append(new_name)
 
-    if not platform.window.localStorage.getItem('suffixlist.txt') == None:
-        name_list = platform.window.localStorage.getItem('suffixlist.txt')
-        if_names = len(name_list)
-        if if_names > 0:
-            new_names = name_list.split('\n')
-            for new_name in new_names:
-                if new_name != '':
-                    normal_suffixes.append(new_name)
+    # if not platform.window.localStorage.getItem('suffixlist.txt') == None:
+    #     name_list = platform.window.localStorage.getItem('suffixlist.txt')
+    #     if_names = len(name_list)
+    #     if if_names > 0:
+    #         new_names = name_list.split('\n')
+    #         for new_name in new_names:
+    #             if new_name != '':
+    #                 normal_suffixes.append(new_name)
 
     def __init__(self,
                  status="warrior",

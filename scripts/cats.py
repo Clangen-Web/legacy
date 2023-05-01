@@ -10,7 +10,7 @@ import os.path
 import json
 import platform
 
-
+import scripts.platformwrapper as web
 class Cat(object):
     used_screen = screen
     traits = [
@@ -2601,7 +2601,10 @@ class Cat(object):
 
         try:
             json_string = json.dumps(clan_cats, indent = 4)
-            platform.window.localStorage.setItem('' + clanname + '/clan_cats.json', json_string)
+            os.makedirs('/saves-legacy/' + clanname, exist_ok = True)
+            with open('/saves-legacy/' + clanname + '/clan_cats.json', 'w') as f:
+                f.write(json_string)
+            web.pushdb()
         except:
             print("Saving cats didn't work.")
 
@@ -2639,13 +2642,16 @@ class Cat(object):
 
         try:
             json_string = json.dumps(rel, indent = 4)
-            platform.window.localStorage.setItem(relationship_dir + '/' + self.ID + '_relations.json', json_string)
+            os.makedirs('/saves-legacy/' + relationship_dir, exist_ok = True)
+            with open('/saves-legacy/' + relationship_dir + '/' + self.ID + '_relations.json', 'w') as f:
+                f.write(json_string)
         except:
             print(f"Saving relationship of cat #{self} didn't work.")
+        web.pushdb()
 
     def load_cats(self):
-        directory = '' + game.switches['clan_list'][0] + '/clan_cats.json'
-        if not platform.window.localStorage.getItem(directory) == None:
+        directory = '/saves-legacy/' + game.switches['clan_list'][0] + '/clan_cats.json'
+        if os.path.exists(directory):
             self.json_load()
         else:
             self.csv_load()
@@ -2655,10 +2661,12 @@ class Cat(object):
             cat_data = ''
         else:
             print('' + game.switches['clan_list'][0] + 'cats.csv')
-            if not platform.window.localStorage.getItem('' + game.switches['clan_list'][0] + 'cats.csv') == None:
-                cat_data = platform.window.localStorage.getItem('' + game.switches['clan_list'][0] + 'cats.csv')
+            if os.path.exists('/saves-legacy/' + game.switches['clan_list'][0] + 'cats.csv'):
+                with open('/saves-legacy/' + game.switches['clan_list'][0] + 'cats.csv', 'r') as f:
+                    cat_data = f.read()
             else:
-                cat_data = platform.window.localStorage.getItem('' + game.switches['clan_list'][0] + 'cats.txt')
+                with open('/saves-legacy/' + game.switches['clan_list'][0] + 'cats.txt', 'r') as f:
+                    cat_data = f.read()
         
         print(cat_data)
         if len(cat_data) > 0:
@@ -2793,7 +2801,8 @@ class Cat(object):
         cat_data = None
         clanname = game.switches['clan_list'][0]
         try:
-            cat_data = json.loads(platform.window.localStorage.getItem('' + clanname + '/clan_cats.json'))
+            with open('/saves-legacy/' + clanname + '/clan_cats.json', 'r') as file:
+                cat_data = json.load(file)
         except:
             game.switches['error_message'] = 'There was an error loading the json cats file!'
             return
@@ -2877,13 +2886,14 @@ class Cat(object):
         else:
             clanname = game.switches['clan_list'][0]
 
-        relation_directory = '' + clanname + '/relationships/'
+        relation_directory = '/saves-legacy/' + clanname + '/relationships/'
         relation_cat_directory = relation_directory + self.ID + '_relations.json'
 
         self.relationships = []
-        if not platform.window.localStorage.getItem(relation_cat_directory) == None:
+        if os.path.exists(relation_cat_directory):
             try:
-                    rel_data = json.loads(platform.window.localStorage.getItem(relation_cat_directory))
+                    with open(relation_cat_directory, 'r') as file:
+                        rel_data = json.loads(file.read())
                     relationships = []
                     for rel in rel_data:
                         cat_to = self.all_cats.get(rel['cat_to_id'])

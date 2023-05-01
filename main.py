@@ -1,8 +1,12 @@
+# pylint: disable=no-member
 import sys
 import os
 import platform
 import asyncio
 from scripts.screens import *
+
+import scripts.platformwrapper as web
+import pygame
 
 # P Y G A M E
 clock = pygame.time.Clock()
@@ -10,9 +14,54 @@ pygame.display.set_icon(pygame.image.load('resources/icon.png'))
 
 async def main():
 # LOAD cats & clan
-    if platform.window.localStorage.getItem('clanlist.txt') == None:
-        platform.window.localStorage.setItem('clanlist.txt', '')
-    clan_list = platform.window.localStorage.getItem('clanlist.txt')
+
+    web.eval("window.fs_loaded = false")
+
+    web.init_idbfs()
+
+    os.mkdir("/saves-legacy")
+
+    web.eval("""
+    FS.mount(window.IDBFS, {'root': '.'}, '/saves-legacy')
+    FS.syncfs(true, (err) => {
+        if (err) {console.log(err)}
+        else {
+            console.log('IndexedDB mounted and synced!')
+            window.fs_loaded = true
+        }
+    })
+
+    window.onbeforeunload = async ()=>{
+        FS.syncfs(false, (err) => {console.log(err)})
+    }
+    """)
+
+    
+    while platform.window.fs_loaded is False: # pylint: disable=no-member
+        print("Waiting for fs to load...")
+        await asyncio.sleep(0.1)
+            
+    if platform.window.localStorage.getItem('hasMigratedLeg') == None: 
+        print('migrating')
+        for i in range(platform.window.localStorage.length): # pylint: disable=no-member
+            key = platform.window.localStorage.key(i) # pylint: disable=no-member
+            value = platform.window.localStorage.getItem(key) # pylint: disable=no-member
+                
+            if key in ['hasMigrated', '/', '__test__']:
+                continue
+            os.makedirs(os.path.dirname(f"/saves-legacy/{key}"), exist_ok=True)
+            with open(f"/saves-legacy/{key}", "w") as f:
+                f.write(value)
+        platform.window.localStorage.setItem("hasMigratedLeg", "true") # pylint: disable=no-member
+
+        web.pushdb()
+        print("Migration complete!")
+
+    if os.path.exists('/saves-legacy/clanlist.txt'):
+        with open('/saves-legacy/clanlist.txt', 'r') as f:
+            clan_list = f.read()
+    else:
+        clan_list = ''
     if_clans = len(clan_list)
     if if_clans > 0:
         game.switches['clan_list'] = clan_list.split('\n')
@@ -32,8 +81,6 @@ async def main():
             print("Default map loaded.")
 
 # LOAD settings
-    if platform.window.localStorage.getItem('settings.txt') == None:
-        platform.window.localStorage.setItem('settings.txt', '')
     game.load_settings()
 
 # reset brightness to allow for dark mode to not look crap

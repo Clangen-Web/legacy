@@ -8,7 +8,7 @@ except:
     mapavailable = False
 from sys import exit
 
-
+import scripts.platformwrapper as web
 class Clan(object):
     leader_lives = 0
     clan_cats = []
@@ -195,7 +195,9 @@ class Clan(object):
             if game.switches['clan_list'][i] != game.switches['switch_clan']:
                 list_data = list_data + game.switches['clan_list'][i] + "\n"
         game.cur_events_list.clear()
-        platform.window.localStorage.setItem('clanlist.txt', list_data)
+        with open('/saves-legacy/clanlist.txt', 'w') as file:
+            file.write(list_data)
+        web.pushdb()
         game.cur_events_list.clear()
 
         pygame.display.quit()
@@ -230,12 +232,16 @@ class Clan(object):
             data = data + str(other_clan.name) + ";" + str(
                 other_clan.relations) + ";" + str(other_clan.temperament)
 
-        platform.window.localStorage.setItem(f'{self.name}clan.txt', data)
+        with open(f'/saves-legacy/{self.name}clan.txt', 'w') as f:
+            f.write(data)
         list_data = self.name + "\n"
         for i in range(len(game.switches['clan_list'])):
             if game.switches['clan_list'][i] != self.name:
                 list_data = list_data + game.switches['clan_list'][i] + "\n"
-        platform.window.localStorage.setItem(f'clanlist.txt', list_data)
+        with open(f'/saves-legacy/clanlist.txt', 'w') as f:
+            f.write(list_data)
+        
+        web.pushdb()
 
     def load_clan(self):
         other_clans = []
@@ -250,7 +256,8 @@ class Clan(object):
                 self.all_clans.append(OtherClan())
             return
         game.switches['error_message'] = "There was an error loading the clan.txt"
-        clan_data = platform.window.localStorage.getItem('' + game.switches['clan_list'][0] + 'clan.txt')
+        with open('/saves-legacy/' + game.switches['clan_list'][0] + 'clan.txt', 'r') as f:
+            clan_data = f.read()
         clan_data = clan_data.replace('\t', ',')
         sections = clan_data.split('\n')
         if len(sections) == 7:

@@ -34,7 +34,8 @@ def save_map(mapinfo, clanname):
 
 def load_map(clanname):
     dict_from_csv = {}
-    clan_data = platform.window.localStorage.getItem(f'{clanname}map.csv')
+    with open(f'/saves-legacy/{clanname}map.csv', 'r') as csvfile:
+        clan_data = csvfile.read()
     sections = clan_data.split('\n')
     for tileinfo in sections:
         if tileinfo == "":

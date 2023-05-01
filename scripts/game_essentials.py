@@ -3,12 +3,13 @@ from ast import literal_eval
 from os import path
 import platform
 
+import os
+import scripts.platformwrapper as web
 screen_x = 800
 screen_y = 700
 screen = pygame.display.set_mode((screen_x, screen_y), pygame.HWSURFACE)
 pygame.display.set_caption('Clan Generator')
-
-
+import scripts.platformwrapper as web
 # G A M E
 class Game(object):
     # Text box variables
@@ -186,12 +187,18 @@ class Game(object):
         data = ''.join(f"{s}:{str(self.settings[s])}" + "\n"
                        for s in self.settings.keys())
 
-        platform.window.localStorage.setItem('settings.txt', data)
+        with open('/saves-legacy/settings.txt', 'w') as f:
+            f.write(data)
+        web.pushdb()
         self.settings_changed = False
 
     def load_settings(self):
         """ Load settings that user has saved from previous use """
-        settings_data = platform.window.localStorage.getItem('settings.txt')
+        if os.path.exists('/saves-legacy/settings.txt'):
+            with open('/saves-legacy/settings.txt', 'r') as f:
+                settings_data = f.read()
+        else:
+            settings_data = ''
 
         lines = settings_data.split(
             "\n"
@@ -219,9 +226,9 @@ class Game(object):
 
     def switch_language(self):
         #add translation information here
-        if not platform.window.localStorage.getItem('languages/' + game.settings['language'] + '.txt') == None:
-            raw_language = platform.window.localStorage.getItem('languages/' + game.settings['language'] + '.txt')
-            game.language = literal_eval(raw_language)
+        if os.path.exists('languages/' + game.settings['language'] + '.txt'):
+            with open('languages/' + game.settings['language'] + '.txt', 'r') as f:
+                game.language = literal_eval(f.read())
 
     def switch_setting(self, setting_name):
         """ Call this function to change a setting given in the parameter by one to the right on it's list """
